@@ -17,7 +17,7 @@ def classroom_list(request):
 
 def classroom_detail(request, classroom_id):
     classroom = Classroom.objects.get(id=classroom_id)
-    studnets = Student.objects.filter(classroom=classroom).order_by("name", "exam_grade")
+    studnets = Student.objects.filter(classroom=classroom).order_by("name", "-exam_grade")
     context = {
         "classroom": classroom,
         "students": studnets
@@ -29,16 +29,13 @@ def classroom_create(request):
         return redirect("signin")
     form = ClassroomForm()
     if request.method == "POST":
-        form = ClassroomForm(request.POST, request.FILES or None)
+        form = ClassroomForm(request.POST)
         if form.is_valid():
-
             classroom_obj = form.save(commit=False)
             classroom_obj.teacher = request.user
             classroom_obj.save()
-
             messages.success(request, "Successfully Created!")
             return redirect('classroom-list')
-        print (form.errors)
     context = {
     "form": form,
     }
@@ -49,12 +46,11 @@ def classroom_update(request, classroom_id):
     classroom = Classroom.objects.get(id=classroom_id)
     form = ClassroomForm(instance=classroom)
     if request.method == "POST":
-        form = ClassroomForm(request.POST, request.FILES or None, instance=classroom)
+        form = ClassroomForm(request.POST, instance=classroom)
         if form.is_valid():
             form.save()
             messages.success(request, "Successfully Updated!")
             return redirect('classroom-list')
-        print (form.errors)
     context = {
     "form": form,
     "classroom": classroom,
@@ -80,12 +76,11 @@ def student_update(request, student_id):
     student = Student.objects.get(id=student_id)
     form = StudentForm(instance=student)
     if request.method == "POST":
-        form = StudentForm(request.POST, request.FILES or None, instance=student)
+        form = StudentForm(request.POST, instance=student)
         if form.is_valid():
             form.save()
             messages.success(request, "Successfully Updated!")
             return redirect('classroom-detail',student.classroom.id)
-        print (form.errors)
     context = {
     "form": form,
     "student": student,
@@ -96,7 +91,6 @@ def student_update(request, student_id):
 
 def student_create(request, classroom_id):
 	classroom=Classroom.objects.get(id=classroom_id)
-	form = StudentForm()
 	if not request.user == classroom.teacher:
 		return redirect("signin")
 	form = StudentForm()
@@ -108,7 +102,6 @@ def student_create(request, classroom_id):
 			item.save()
 			messages.success(request, "Successfully Created!")
 			return redirect('classroom-detail',classroom.id)
-		print(form.errors)
 	context = {
 		
 		"form":form,
